@@ -69,5 +69,5 @@ Key features include:
 
 - Immune deconvolution with EPIC
 
-  **Contact:** LeonorPatricia.SchubertSantana@glasgow.ac.uk
+**Contact:** LeonorPatricia.SchubertSantana@glasgow.ac.uk
   
