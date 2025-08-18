@@ -7,7 +7,7 @@ Scripts for analyzing IPMN-PDAC multi-region WGS data and reconstructing clonal 
 https://code.visualstudio.com/
 
 ### 2) Paste to URL: 
-https://github.com/xtgithubhe/IPMNpaperArchive/blob/main/ipmnPaperCode.ipynb
+https://github.com/xtgithubhe/IPMNPDACpaperArchive/blob/main/ipmnPaperCode.ipynb
 Press Enter. VS Code will open the repository in a temporary (virtual) workspace — no need to clone it locally.
 
 **OR:**
@@ -53,7 +53,7 @@ Example input and output files are located in ./Data.
 python3 ./bbDPCtiming.py ${sampleID} ${ssDPCIfolderpath} ${dpcoutfolderpath} ${outpath4in}
 
 # IPMNPDAC_RNAseq
-scripts for integrative analysis of genomic, transcriptomic, and immune data in IPMN-PDAC.
+Scripts for integrative analysis of genomic, transcriptomic, and immune data in IPMN-PDAC.
 Key features include:
 
 - Dataset preparation and preprocessing
