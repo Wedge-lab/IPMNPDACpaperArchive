@@ -52,7 +52,7 @@ Example input and output files are located in ./Data.
 ## Basic usage example (./bbDPCtiming.sh is designed for systems using SLURM.)
 python3 ./bbDPCtiming.py ${sampleID} ${ssDPCIfolderpath} ${dpcoutfolderpath} ${outpath4in}
 
-**Contact: xiaotong.he@manchester.ac.uk**
+**Contact:** xiaotong.he@manchester.ac.uk
 
 
 # IPMNPDAC_RNAseq
