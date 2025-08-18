@@ -1,0 +1,3 @@
+sampleTumor,typeTumosample,tumorsample,samples,chr_pos,chrs,pos,REF,ALT,gene,mutation,DP,VAF
+case15_4_IPMN_HGD,t3_IPMN_HGD_case15_4,IPMN_HGD_case15_4,case15_S4,chr9_107487067,chr9,107487067,T,G,KLF4,missense,66,0.3333333333333333
+case9_S3_PDAC,t6_PDAC_case9_S3,PDAC_case9_S3,case9_S3,chr9_107493663,chr9,107493663,C,A,KLF4,upstream,123,0.1463414634146341
