@@ -1,0 +1,324 @@
+---
+title: "IPMN RNAseq Code"
+output: html_document
+---
+
+
+1) Read in data
+2) Clustering
+3) ComBat-Seq correct data
+4) Subtype assignment
+5) Cancer hallmarks
+6) Immune deconvolution (EPIC)
+
+
+Paths to input files
+
+Assumes:
+
+- RNA salmon counts in: "IPMN_RNAseq_1121/salmon_quants"
+- All additional data like clinical annotations and gene list in "additional_data" with the naming conventions and structure as described in the code underneath
+
+```{r}
+library(tximport)
+library(ensembldb)
+library(EnsDb.Hsapiens.v86)
+library(DESeq2)
+#library(estimate)
+library(reshape2)
+library(ggpubr)
+library(sva)
+library(singscore)
+library(msigdbr)
+library(openxlsx)
+library(ComplexHeatmap)
+library(circlize)
+
+
+# RNA
+sample.ids <- list.files("IPMN_RNAseq_1121/salmon_quants")
+files <- file.path("IPMN_RNAseq_1121/salmon_quants", sample.ids, "quant.sf")
+
+# Annotations
+anno.df <- read.xlsx("additional_data/clinical_annotations.xlsx") 
+
+# Gene symbols
+gene.map <- read.delim("additional_data/genemap.txt", sep = "\t", header = FALSE, stringsAsFactors = FALSE)
+
+# Gene lists
+# Bailey immunogenic, ADEX, squamous and progenitor files each containing a column Symbol with the corresponding gene symbols (naming convention Bailey_ADEX, Bailey_immunogenic, Bailey_squamous, Bailey_progenitor)
+bailey_path <- "additional_data/Bailey_"
+# Basal and classical file each containing one column V1 with the corresponding gene symbols (naming convention Moffitt_basal, Moffitt_classical)
+moffit_path <- "additional_data/Moffitt_"
+# Quasi-mesechymal, classical and exocrine files each containing one column V1 with the corresponding gene symbols (naming convention Collisson_classical, Collisson_exocrine, Collisson_quasi-mesechymal)
+coll_path <- "additional_data/Collisson_"
+# Bailey squamous/classical signatures with column Symbol containing gene symbol and dvalue>0 corresponding to classical genes and dvalue<0 to squamous genes
+clin.sig <- read.delim("additional_data/bailey2_gene_signature.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+# GP programs with each column corresponding to one program (named with the originel colour names, black-yellow) and the non-empty rows containing the gene symbols part of the corresponding GP
+gp_sig <- read.delim("additional_data/GP_signatures.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+
+```
+
+
+1) Read in data
+
+```{r}
+## Data
+## Expression data
+names(files) <- sample.ids
+names(files) <- gsub("_261121", "", names(files))
+names(files) <- sub("^(([^_]*_){1}[^_]*)_.*", "\\1", names(files))
+names(files) <- gsub("BB13013_", "BB130136_", names(files))
+
+
+## Make a meta data data frame
+anno.df$sample <- ifelse(grepl("_", anno.df$sample),
+                         anno.df$sample,
+                         as.character(as.integer(anno.df$sample)))
+anno.df$Sample <-  ifelse(grepl("BB", anno.df$BBnumber),
+                          paste(anno.df$BBnumber, gsub("_", "", anno.df$sample), sep = "_"),
+                          sub("(TP)", "_\\1", anno.df$BBnumber))
+anno.df$Sample <-  ifelse(anno.df$Sample == "BB110829_1",
+                          "BB110829_S18",
+                          anno.df$Sample)
+anno.df$Case <- gsub("_.*", "", anno.df$ID.samples)
+anno.df <- anno.df[anno.df$BBnumber != "BB070122", ]
+anno.df <- base::unique(anno.df)
+rownames(anno.df) <- anno.df$Sample
+files <- files[names(files) %in% anno.df$Sample]
+
+files <- files[grepl("_261121", files)]
+
+## Produce a data frame to map the Transcript IDs to Gene IDs
+tx.df <- transcripts(EnsDb.Hsapiens.v86, return.type = "DataFrame", columns = c("gene_name", "gene_id"))
+tx2gene <- as.data.frame(tx.df[, c("tx_id", "gene_id", "gene_name")])
+
+txi <- tximport(files, type = "salmon", tx2gene = tx2gene, ignoreTxVersion = TRUE)
+
+ipmn.dds.all <- DESeqDataSetFromTximport(txi, colData = anno.df[colnames(txi$counts), ], design =  ~ BBnumber)
+
+## Remove low counts
+ipmn.dds.all <- estimateSizeFactors(ipmn.dds.all)
+idx <- rowSums( counts(ipmn.dds.all, normalized = TRUE) >= 5 ) >= 20   ## 20169 genes retained
+ipmn.dds.all <- ipmn.dds.all[idx, ]
+
+ipmn.vst <- assay(vst(ipmn.dds.all))
+
+library(biomaRt)
+ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+gene.ids <- getBM(attributes = c("ensembl_gene_id", "hgnc_symbol"), filters = "ensembl_gene_id", values = rownames(ipmn.vst), mart = ensembl)
+gene.ids <- base::unique(gene.ids)
+gene.ids <- subset(gene.ids, hgnc_symbol != "")
+gene.ids.dup <- gene.ids[duplicated(gene.ids$hgnc_symbol), ]
+
+gene.ids.dup.df <- do.call("rbind.data.frame", lapply(base::unique(gene.ids.dup$hgnc_symbol), function(x) gene.ids[grep(paste0("^", x, "$"), gene.ids$hgnc_symbol), ]))
+
+## 335 duplicated genes
+## Check on Gene Cards for official Ensembl ID
+gene.map <- merge(gene.ids.dup.df, gene.map, by.x = "hgnc_symbol", by.y = "V1", all = TRUE)
+gene.map$match <- ifelse(gene.map$ensembl_gene_id == gene.map$V2, "match", "different")
+
+matched <- subset(gene.map, match == "match")
+different <- subset(gene.map, match == "different")
+
+rownames(gene.ids) <- gene.ids$ensembl_gene_id
+all.gene.ids <- rbind(gene.ids[setdiff(rownames(gene.ids), gene.ids.dup.df$ensembl_gene_id), ], matched[, c(2, 1)])
+rownames(all.gene.ids) <- all.gene.ids$ensembl_gene_id
+```
+
+
+2) Sample clustering by distance
+
+```{r}
+ipmn.dist <- dist(t(ipmn.vst))
+ipmn.dist.mat <- as.matrix(ipmn.dist)
+
+
+ht <- Heatmap(ipmn.dist.mat, col = colorRamp2(c(0, 200), c("#E41A1C", "white")), name = "Distance", cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = FALSE, column_names_gp = gpar(fontsize = 9), show_row_dend = FALSE)
+draw(ht)
+
+
+# Dendogram and clusters
+col_dendrogram <- column_dend(draw(ht))
+clusters <- cutree(as.hclust(col_dendrogram), k = 2)
+
+ipmn.vsd <- vst(ipmn.dds.all)
+ipmn.pca <- plotPCA(ipmn.vsd, intgroup = "Case", returnData = TRUE)
+ggplot(ipmn.pca, aes(x = PC1, y = PC2, col = Case)) + geom_point() + theme_bw() + scale_color_manual(values = c("tomato3", "navy", "red3", "forestgreen", "aquamarine4", "darkgoldenrod2", "darkorchid4", "royalblue2", "violetred", "tan3", "darkseagreen3"))
+
+
+# Exclude outlier samples for subsequent analysis and repeat PCA
+anno.df <- anno.df[!anno.df$Sample %in% c("6834_TP5", "BB090082_3", "BB110829_3"), ]
+txi <- tximport(files[!names(files) %in% c("6834_TP5", "BB090082_3", "BB110829_3")], type = "salmon", tx2gene = tx2gene, ignoreTxVersion = TRUE)
+ipmn.dds.all <- DESeqDataSetFromTximport(txi, colData = anno.df[colnames(txi$counts),], design =  ~ BBnumber)
+
+
+ipmn.dds.all <- estimateSizeFactors(ipmn.dds.all)
+idx <- rowSums( counts(ipmn.dds.all, normalized = TRUE) >= 5 ) >= 20   ## 20169 genes retained
+ipmn.dds.all <- ipmn.dds.all[idx, ]
+
+ipmn.vst <- assay(vst(ipmn.dds.all))
+
+ipmn.vsd <- vst(ipmn.dds.all)
+ipmn.pca <- plotPCA(ipmn.vsd, intgroup = "Case", returnData = TRUE)
+ggplot(ipmn.pca, aes(x = PC1, y = PC2, col = Case)) + geom_point() + theme_bw() + scale_color_manual(values = c("tomato3", "navy", "red3", "forestgreen", "aquamarine4", "darkgoldenrod2", "darkorchid4", "royalblue2", "violetred", "tan3", "darkseagreen3"))
+```
+
+
+2) ComBat-Seq correct data
+
+```{r}
+## ComBat correct
+batch <- gsub("TP.*", "", colData(ipmn.dds.all)$BBnumber)
+batch <- gsub("6834|7048|BB080207|BB151277|BB170391|BB171457", 1, batch)
+batch <- gsub("BB080016|BB090082|BB110829|BB120226|BB130136", 2, batch)
+
+counts.mat <- as.data.frame(counts(ipmn.dds.all))
+
+combat.counts <- ComBat_seq(as.matrix(counts.mat), batch = batch)
+
+## VST
+combat.dds <- DESeqDataSetFromMatrix(combat.counts, colData = colData(ipmn.dds.all), design = ~ 1)
+
+combat.dds <- estimateSizeFactors(combat.dds)
+idx <- rowSums( counts(combat.dds, normalized = TRUE) >= 5 ) >= 20
+combat.dds <- combat.dds[idx, ]
+
+combat.vst <- assay(vst(combat.dds))
+
+all.gene.ids <- all.gene.ids[base::unique(intersect(rownames(combat.vst), all.gene.ids$ensembl_gene_id)), ]
+combat.vst <- combat.vst[all.gene.ids$ensembl_gene_id, ]
+rownames(combat.vst) <- all.gene.ids$hgnc_symbol
+```
+
+
+4) Subtype assignment
+
+Classical-squamous gradient signature
+
+```{r}
+
+ipmn.vst <- ipmn.vst[all.gene.ids$ensembl_gene_id, ]
+rownames(ipmn.vst) <- all.gene.ids$hgnc_symbol
+ipmn.rank <- rankGenes(ipmn.vst)
+
+squ.sig <- subset(clin.sig, dvalue < 0)
+cla.sig <- subset(clin.sig, dvalue > 0)
+
+squ.sig.sc <- simpleScore(ipmn.rank, upSet = base::unique(squ.sig$Symbol))
+cla.sig.sc <- simpleScore(ipmn.rank, upSet = base::unique(cla.sig$Symbol))
+
+total.sc <- data.frame(Sample = rownames(squ.sig.sc), Squ = squ.sig.sc$TotalScore, Cla = cla.sig.sc$TotalScore, Score = squ.sig.sc$TotalScore - cla.sig.sc$TotalScore)
+
+total.sc
+
+get.sing.score <- function(genes = c("ADEX", "immunogenic", "progenitor", "squamous")) {
+  genes.df <- read.delim(paste0(bailey_path, genes, ".txt"), sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+  rownames(genes.df) <- genes.df$Symbol
+  genes.df <- genes.df[intersect(rownames(genes.df), rownames(ipmn.rank)), ]
+  genes.df <- genes.df[1:50, ]
+  sc <- simpleScore(ipmn.rank, upSet = base::unique(genes.df$Symbol))
+  return(sc)
+}
+
+adex.sc <- get.sing.score("ADEX")
+immu.sc <- get.sing.score("immunogenic")
+prog.sc <- get.sing.score("progenitor")
+squa.sc <- get.sing.score("squamous")
+
+all.bailey.sc <- data.frame(Sample = rownames(adex.sc), ADEX = adex.sc$TotalScore, Immunogenic = immu.sc$TotalScore, Progenitor = prog.sc$TotalScore, Squamous = squa.sc$TotalScore)
+rownames(all.bailey.sc) <- all.bailey.sc$Sample
+
+
+## Moffit and Collisson scores
+moff.cla <- read.delim(paste0(moffit_path, "classical.txt"), sep = "\t", header = FALSE, stringsAsFactors = FALSE)
+moff.bas <- read.delim(paste0(moffit_path, "basal.txt"), sep = "\t", header = FALSE, stringsAsFactors = FALSE)
+
+moff.scores <- data.frame(Classical = simpleScore(ipmn.rank, upSet = moff.cla$V1), Basal = simpleScore(ipmn.rank, upSet = moff.bas$V1))
+moff.scores <- moff.scores[grepl("TotalScore", colnames(moff.scores))]
+
+coll.qm <- read.delim(paste0(coll_path, "quasi-mesenchymal.txt"), sep = "\t", header = FALSE, stringsAsFactors = FALSE)
+coll.cla <- read.delim(paste0(coll_path, "classical.txt"), sep = "\t", header = FALSE, stringsAsFactors = FALSE)
+coll.exo <- read.delim(paste0(coll_path, "exocrine.txt"), sep = "\t", header = FALSE, stringsAsFactors = FALSE)
+
+coll.scores <- data.frame(Classical = simpleScore(ipmn.rank, upSet = coll.cla$V1), QM = simpleScore(ipmn.rank, upSet = coll.qm$V1), Exocrine = simpleScore(ipmn.rank, upSet = coll.exo$V1))
+coll.scores <- coll.scores[grepl("TotalScore", colnames(coll.scores))]
+
+
+## GP scores
+gp_sig <- gp_sig[, c("blue", "yellow", "brown", "green", "purple", "red", "magenta", "royalblue", "darkorange", "black")]
+
+gp.score.un <- lapply(colnames(gp_sig), function(x) {
+  genes <- gp_sig[[x]][gp_sig[[x]] != ""]
+  sc <- simpleScore(ipmn.rank, upSet = base::unique(genes))
+  sc$Sample <- rownames(sc)
+  if (nrow(sc) > 0)
+    sc$Module <- x
+  sc
+})
+
+gp.score.un.df <- do.call("rbind.data.frame", gp.score.un)
+```
+
+
+5) Cancer hallmarks
+
+```{r}
+m_t2g <- msigdbr(species = "Homo sapiens", category = "H") %>% 
+  dplyr::select(gs_name, ensembl_gene, gene_symbol)
+
+hallmarks.un <- lapply(base::unique(m_t2g$gs_name), function(x) {
+  genes <- subset(m_t2g, gs_name == x)
+  s.score <- simpleScore(ipmn.rank, upSet = base::unique(genes$gene_symbol))
+  s.score$Sample <- rownames(s.score)
+  s.score$Hallmark <- x
+  s.score
+})
+
+hallmarks.un <- do.call("rbind.data.frame", hallmarks.un)
+
+hallmarks
+```
+
+
+6) Immune deconvolution (EPIC)
+
+EPIC to deconvolute samples
+
+```{r}
+library("immunedeconv")
+
+tpm <- function(counts, lengths) {
+  rate <- counts / lengths
+  rate / sum(rate) * 1e6
+}
+
+ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+gene.ids <- getBM(attributes = c("ensembl_gene_id", "hgnc_symbol", "start_position", "end_position"), filters = "ensembl_gene_id", values = all.gene.ids$ensembl_gene_id, mart = ensembl)
+gene.ids$length <- gene.ids$end_position - gene.ids$start_position
+
+
+# TPM
+ipmn.df <- counts(ipmn.dds.all)
+ipmn.df <- ipmn.df[all.gene.ids$ensembl_gene_id, ]
+rownames(ipmn.df) <- all.gene.ids$hgnc_symbol
+ipmn.df <- as.data.frame(ipmn.df)[gene.ids$hgnc_symbol, ]
+
+ipmn.tpm <- as.data.frame(apply(ipmn.df, 2, function(x) tpm(x, gene.ids$length)))
+ipmn.tpm <- cbind(rownames(ipmn.tpm), ipmn.tpm)
+colnames(ipmn.tpm)[1] <- "Gene"
+
+epic.un <- deconvolute(ipmn.tpm[, 2:ncol(ipmn.tpm)], "epic")
+
+epic.un.df <- as.data.frame(epic.un)
+rownames(epic.un.df) <- epic.un.df$cell_type
+epic.un.df$cell_type <- NULL
+epic.un.df <- as.data.frame(t(epic.un.df))
+
+
+epic.m <- epic.un.df
+epic.m$Sample <- rownames(epic.m)
+epic.m$Case <- rownames(epic.m)
+epic.m$Case <- gsub("_.*$", "", epic.m$Case)
+```
+
