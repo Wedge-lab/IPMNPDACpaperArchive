@@ -52,6 +52,9 @@ Example input and output files are located in ./Data.
 ## Basic usage example (./bbDPCtiming.sh is designed for systems using SLURM.)
 python3 ./bbDPCtiming.py ${sampleID} ${ssDPCIfolderpath} ${dpcoutfolderpath} ${outpath4in}
 
+**Contact: xiaotong.he@manchester.ac.uk**
+
+
 # IPMNPDAC_RNAseq
 Scripts for integrative analysis of genomic, transcriptomic, and immune data in IPMN-PDAC.
 Key features include:
@@ -65,3 +68,6 @@ Key features include:
 - Cancer hallmark annotation
 
 - Immune deconvolution with EPIC
+
+  **LeonorPatricia.SchubertSantana@glasgow.ac.uk**
+  
