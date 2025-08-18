@@ -1,2 +1,67 @@
-# IPMNPDACpaperArchive
-Scripts for analyzing IPMN-PDAC multi-region WGS and RNAseq data
+# IPMNPDAC_WGS
+Scripts for analyzing IPMN-PDAC multi-region WGS data and reconstructing clonal trees.
+
+## ipynb View
+
+### 1) Install VS Code: 
+https://code.visualstudio.com/
+
+### 2) Paste to URL: 
+https://github.com/xtgithubhe/IPMNpaperArchive/blob/main/ipmnPaperCode.ipynb
+Press Enter. VS Code will open the repository in a temporary (virtual) workspace — no need to clone it locally.
+
+**OR:**
+### 3) View the notebooks directly using:
+- nbviewer
+  
+  https://nbviewer.org/github.com/xtgithubhe/IPMNpaperArchive/ipmnPaperCode.ipynb
+- Google Colab
+  
+  https://colab.research.google.com/github.com/xtgithubhe/IPMNpaperArchive/ipmnPaperCode.ipynb
+  
+  ## Data Use
+ The path of all datasets can be adjusted to access the Data within the Git repository structure, but the file names must remain the same.
+
+**Contact:** xiaotong.he@manchester.ac.uk
+
+# BBDPCtiming
+Code for the BBDtiming approach to mutation timing and clonal inference using inputs from Battenberg and DPClust.
+
+## Overview
+To infer the likely timing and clonal status of mutations within the tumour, we categorized them into six groups (from clonal early to subclone) using the BBD timing approach, 
+which integrates cancer cell fraction (CCF) estimates and local copy number information derived from Battenberg and DPClust ( https://github.com/Wedge-lab ). 
+
+Mutations with a CCF ≤ 0 were designated as unspecialized (unSp), indicating likely sequencing artefacts or biologically insignificant variants with minimal representation in the cancer cell population. 
+Mutations with a CCF between 0 and 0.95 were classified as subclone, representing variants likely emerging after the initial clonal expansion.
+Mutations with a CCF of at least 0.95, indicative of high cancer cell prevalence, were further subdivided based on copy number features and chromosomal distribution. 
+If either of the major alleles (nMaj1 or nMaj2) had a copy number greater than 1 and the mutation was present on more than one chromosome (noChrsBearingMut > 1), 
+the mutation was classified as clone early (cloneEarly), suggesting early clonal mutations that underwent chromosomal duplication. 
+If, instead, the minor allele (nMin1 or nMin2) had a copy number of 1, or the mutation was detected on only one or no chromosome (noChrsBearingMut ≤ 1),
+the mutation was classified as possibly clone late (possiblylate), potentially indicating limited clonal expansion or structural constraints in copy number architecture. 
+ 
+ Mutations with high CCF that did not meet the specific criteria for cloneEarly or possiblylate were assigned to the clone late category ((cloneLate), 
+ representing clonal mutations with less distinctive chromosomal features. Any remaining mutations, which did not clearly fall into the above categories, were grouped as ‘clonalNA’.
+
+## Getting started
+Clone the repository git clone
+git clone git@github.com-xtgithubhe:xtgithubhe/BBDPCtiming.git
+
+## Input and output
+Example input and output files are located in ./Data.
+
+## Basic usage example (./bbDPCtiming.sh is designed for systems using SLURM.)
+python3 ./bbDPCtiming.py ${sampleID} ${ssDPCIfolderpath} ${dpcoutfolderpath} ${outpath4in}
+
+# IPMNPDAC_RNAseq
+scripts for integrative analysis of genomic, transcriptomic, and immune data in IPMN-PDAC.
+Key features include:
+
+- Dataset preparation and preprocessing
+
+- Clustering and subtype assignment
+
+- Batch correction using ComBat-Seq
+
+- Cancer hallmark annotation
+
+- Immune deconvolution with EPIC
