@@ -7,17 +7,17 @@ Scripts for analyzing IPMN-PDAC multi-region WGS data and reconstructing clonal 
 https://code.visualstudio.com/
 
 ### 2) Paste to URL: 
-https://github.com/xtgithubhe/IPMNPDACpaperArchive/blob/main/ipmnPaperCode.ipynb
+https://github.com/xtgithubhe/IPMNPDACpaperArchive/blob/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
 Press Enter. VS Code will open the repository in a temporary (virtual) workspace — no need to clone it locally.
 
 **OR:**
 ### 3) View the notebooks directly using:
 - nbviewer
   
-  https://nbviewer.org/github.com/xtgithubhe/IPMNpaperArchive/ipmnPaperCode.ipynb
+  https://nbviewer.org/github.com/xtgithubhe/IPMNPDACpaperArchive/blob/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
 - Google Colab
   
-  https://colab.research.google.com/github.com/xtgithubhe/IPMNpaperArchive/ipmnPaperCode.ipynb
+  https://colab.research.google.com/github.com/xtgithubhe/IPMNPDACpaperArchive/blob/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
   
   ## Data Use
  The path of all datasets can be adjusted to access the Data within the Git repository structure, but the file names must remain the same.
