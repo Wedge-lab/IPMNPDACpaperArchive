@@ -24,14 +24,14 @@ Press Enter. VS Code will open the repository in a temporary (virtual) workspace
 - **Python**: >= 3.9  
 - **R**: >= 4.2  
   ### Python dependencies
-  -`pandas>=2.2.3`
-  - `numpy>=2.2.6`
-  - `matplotlib>=3.10.0`
+  - pandas>=2.2.3
+  - numpy>=2.2.6
+  - matplotlib>=3.10.0
   ### R dependencies
-  dplyr(>=1.1.4)       
-  ggplot2(>=3.5.2)     
-  tibble(>=3.3.0)
-  tidyr(>=1.3.1)
+  - dplyr(>=1.1.4)       
+  - ggplot2(>=3.5.2)     
+  - tibble(>=3.3.0)
+  - tidyr(>=1.3.1)
 
   ## Input Data Formats
   1. CSV file
