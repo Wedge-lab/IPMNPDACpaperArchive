@@ -83,7 +83,7 @@ the mutation was classified as possibly clone late (possiblylate), potentially i
 
 ## Getting started
 Clone the repository git clone
-git clone git@github.com-xtgithubhe:xtgithubhe/BBDPCtiming.git
+git clone https://github.com/xtgithubhe/IPMNPDACpaperArchive/tree/main/PACA_PCAWG_BBDPCtiming
 
 ## Input and output
 Example input and output files are located in ./Data.
