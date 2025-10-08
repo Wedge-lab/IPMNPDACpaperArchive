@@ -1,6 +1,10 @@
 # IPMNPDAC_WGS
 Scripts for analyzing IPMN-PDAC multi-region WGS data and reconstructing clonal trees.
 
+## Getting started
+Clone the repository git clone
+git clone git clone https://github.com/xtgithubhe/IPMNPDACpaperArchive/tree/main/IPMNPDAC_WGS
+
 ## ipynb View
 
 ### 1) Install VS Code: 
