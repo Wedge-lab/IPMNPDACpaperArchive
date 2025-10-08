@@ -18,6 +18,20 @@ Press Enter. VS Code will open the repository in a temporary (virtual) workspace
 - Google Colab
   
   https://colab.research.google.com/github.com/xtgithubhe/IPMNPDACpaperArchive/blob/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
+
+## Requirements
+
+- **Python**: >= 3.9  
+- **R**: >= 4.2  
+  ### Python dependencies
+  pandas>=2.2.3
+  numpy>=2.2.6
+  matplotlib>=3.10.0
+  ### R dependencies
+  dplyr(>=1.1.4)       
+  ggplot2(>=3.5.2)     
+  tibble(>=3.3.0)
+  tidyr(>=1.3.1)
   
   ## Data Use
  The path of all datasets can be adjusted to access the Data within the Git repository structure, but the file names must remain the same.
