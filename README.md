@@ -88,7 +88,7 @@ the mutation was classified as possibly clone late (possiblylate), potentially i
 ## Getting started
 Clone the repository:
 
-git clone https://github.com/xtgithubhe/IPMNPDACpaperArchive
+git clone https://github.com/Wedge-lab/IPMNPDACpaperArchive
 
 cd IPMNPDACpaperArchive/PACA_PCAWG_BBDPCtiming
 
