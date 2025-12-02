@@ -18,11 +18,8 @@ Press Enter. VS Code will open the repository in a temporary (virtual) workspace
 ### 3) View the notebooks directly using:
 - nbviewer
   
-  https://nbviewer.org/github.com/Wedge-lab/IPMNPDACpaperArchive/tree/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
-- Google Colab
+  https://nbviewer.org/github/Wedge-lab/IPMNPDACpaperArchive/blob/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
   
-  https://colab.research.google.com/github.com/Wedge-lab/IPMNPDACpaperArchive/tree/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
-
 ## Requirements
 
 - **Python**: >= 3.9  
