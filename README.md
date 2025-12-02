@@ -23,7 +23,7 @@ Press Enter. VS Code will open the repository in a temporary (virtual) workspace
   
   https://nbviewer.org/github/Wedge-lab/IPMNPDACpaperArchive/blob/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
 
-## HTLM View
+## HTML View
 
 https://raw.githack.com/Wedge-lab/IPMNPDACpaperArchive/main/IPMNPDAC_WGS/ipmnpdac_WGS.html
   
