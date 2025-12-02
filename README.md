@@ -82,7 +82,7 @@ the mutation was classified as possibly clone late (possiblylate), potentially i
  representing clonal mutations with less distinctive chromosomal features. Any remaining mutations, which did not clearly fall into the above categories, were grouped as ‘clonalNA’.
 
 ## Getting started
-Clone the repository git clone
+Clone the repository:
 
 git clone https://github.com/xtgithubhe/IPMNPDACpaperArchive
 
