@@ -4,8 +4,8 @@
 #SBATCH -n 2
 #SBATCH -t 2-0
 #SBATCH -a 1-2
-#SBATCH -o /yourFloder/logs/%A_%a.out
-#SBATCH -e /yourFloder/logs/%A_%a.err
+#SBATCH -o /yourFolder/logs/%A_%a.out
+#SBATCH -e /yourFolder/logs/%A_%a.err
 
 module purge
 conda activate xtpy311
