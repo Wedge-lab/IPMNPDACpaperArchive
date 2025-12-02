@@ -11,17 +11,17 @@ git clone git clone https://github.com/xtgithubhe/IPMNPDACpaperArchive/tree/main
 https://code.visualstudio.com/
 
 ### 2) Paste to URL: 
-https://github.com/xtgithubhe/IPMNPDACpaperArchive/blob/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
+https://github.com/Wedge-lab/IPMNPDACpaperArchive/tree/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
 Press Enter. VS Code will open the repository in a temporary (virtual) workspace — no need to clone it locally.
 
 **OR:**
 ### 3) View the notebooks directly using:
 - nbviewer
   
-  https://nbviewer.org/github.com/xtgithubhe/IPMNPDACpaperArchive/blob/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
+  https://nbviewer.org/github.com/Wedge-lab/IPMNPDACpaperArchive/tree/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
 - Google Colab
   
-  https://colab.research.google.com/github.com/xtgithubhe/IPMNPDACpaperArchive/blob/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
+  https://colab.research.google.com/github.com/Wedge-lab/IPMNPDACpaperArchive/tree/main/IPMNPDAC_WGS/ipmnpdac_WGS.ipynb
 
 ## Requirements
 
