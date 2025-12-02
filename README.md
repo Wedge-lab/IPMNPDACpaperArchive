@@ -3,7 +3,9 @@ Scripts for analyzing IPMN-PDAC multi-region WGS data and reconstructing clonal 
 
 ## Getting started
 Clone the repository:
+
 git clone https://github.com/Wedge-lab/IPMNPDACpaperArchive
+
 cd IPMNPDACpaperArchive/IPMNPDAC_WGS
 
 ## ipynb View
@@ -81,7 +83,9 @@ the mutation was classified as possibly clone late (possiblylate), potentially i
 
 ## Getting started
 Clone the repository git clone
+
 git clone https://github.com/xtgithubhe/IPMNPDACpaperArchive
+
 cd IPMNPDACpaperArchive/PACA_PCAWG_BBDPCtiming
 
 ## Input and output
