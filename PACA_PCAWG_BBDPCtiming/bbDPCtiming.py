@@ -59,7 +59,7 @@ def bbDPCtiming(sampleID, ssDPIpath, ssDPCOpath, tmOpath):
             if ssdpi_dpcOut.noChrsBearingMut[i] > 1:
                 tm = 'cloneEarly'
             #version2-add possiblyLate
-            elif ssdpi_dpcOut.nMin1[i] == 1 or ssdpi_dpcOut.nMin2[i] == 1 and ssdpi_dpcOut.noChrsBearingMut[i] <= 1:
+            elif (ssdpi_dpcOut.nMin1[i] == 1 or ssdpi_dpcOut.nMin2[i] == 1) and ssdpi_dpcOut.noChrsBearingMut[i] <= 1:
                 tm = "possiblyLate"
             else:
                 tm = 'cloneLate'
