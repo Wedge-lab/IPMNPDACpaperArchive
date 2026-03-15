@@ -82,7 +82,7 @@ the mutation was classified as clone early (cloneEarly), suggesting early clonal
 If, instead, the minor allele (nMin1 or nMin2) had a copy number of 1, or the mutation was detected on only one or no chromosome (noChrsBearingMut ≤ 1),
 the mutation was classified as possibly clone late (possiblylate), potentially indicating limited clonal expansion or structural constraints in copy number architecture. 
  
- Mutations with high CCF that did not meet the specific criteria for cloneEarly or possiblylate were assigned to the clone late category ((cloneLate), 
+ Mutations with high CCF that did not meet the specific criteria for cloneEarly or possiblylate were assigned to the clone late category (cloneLate), 
  representing clonal mutations with less distinctive chromosomal features. Any remaining mutations, which did not clearly fall into the above categories, were grouped as ‘clonalNA’.
 
 ## Getting started
