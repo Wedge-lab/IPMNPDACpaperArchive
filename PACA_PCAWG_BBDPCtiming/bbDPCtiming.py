@@ -13,6 +13,8 @@ DPC_SUFFIX = "_DPoutput_2000iters_1000burnin_seed123"
 ITERS_TAG  = "2000iters_1000burnin"
 CCF_SUBCLONE_THRESHOLD = 0.95
 
+DPC_CCF_COLS = ["cluster", "location_CCF"]
+
 SSDPI_COLS = [
     "chr", "end", "subclonal.CN",
     "nMaj1", "nMin1", "frac1",
@@ -105,27 +107,20 @@ def bbDPC_timing(sample_id: str, ssDPI_path: str, ssDPCO_path: str, out_path: st
         [["chr_pos", "cluster", "location_CCF"]]
     )
 
-    # --- 5. Fill in ssDPI loci absent from DPC output ---
+    # --- 5. Fill in ssDPI loci absent from DPC output, Merge & save intermediate ---
     missing_loci = set(ssdpi["chr_pos"]) - set(dpc_ccf["chr_pos"])
     if missing_loci:
         logger.info("  %d ssDPI loci have no CNA entry; assigning cluster=-1", len(missing_loci))
-    missing_df = pd.DataFrame({
-        "chr_pos"     : list(missing_loci),
-        "cluster"     : -1,
-        "location_CCF": -1.0,
-    })
-    all_ccf = pd.concat([dpc_ccf, missing_df], ignore_index=True)
-
-    # --- 6. Merge & save intermediate ---
     merged = (
         ssdpi
-        .merge(all_ccf, on="chr_pos")
-        .rename(columns={"no.chrs.bearing.mut": "noChrsBearingMut"})
+            .merge(dpc_ccf, on='chr_pos', how='left')
+            .rename(columns={'no.chrs.bearing.mut':'noChrsBearingMut'})
     )
+    merged[DPC_CCF_COLS] = merged[DPC_CCF_COLS].fillna(-1)
     merged.to_csv(paths["merge_out"], index=False)
     logger.info("  Saved merge file → %s", paths["merge_out"])
 
-    # --- 7. Classify timing & save final output ---
+    # --- 6. Classify timing & save final output ---
     merged["bbDPCtiming"] = merged.apply(_classify_timing, axis=1)
     (
         merged
@@ -145,10 +140,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    
-
-  
-
-
-
     
