@@ -94,14 +94,10 @@ def bbDPC_timing(sample_id: str, ssDPI_path: str, ssDPCO_path: str, out_path: st
         columns={"cluster.no": "cluster", "location": "location_CCF"}
     )[["cluster", "location_CCF"]]
 
-    # Sentinel row: cluster 0 → CCF 0 (catches fillna(0) above)
-    sentinel     = pd.DataFrame({"cluster": [0], "location_CCF": [0.0]})
-    best_cluster = pd.concat([best_cluster, sentinel], ignore_index=True)
-
     # --- 4. Attach CCF to every DPC locus ---
     dpc_ccf = (
         dpc_out
-        .merge(best_cluster, on="cluster")
+        .merge(best_cluster, on="cluster", how='left')
         .assign(chr_pos=lambda df: df["chr"].astype(str) + "_" + df["end"].astype(str))
         .sort_values("chr_pos", key=natsort_keygen())
         [["chr_pos", "cluster", "location_CCF"]]
